@@ -4,7 +4,7 @@
 const OWNER_PASSWORD = "A786";
 const INSTAGRAM_USERNAME = "reba_artistry"; 
 const TIKTOK_USERNAME = "reba_artistry";    
-
+const WHATSAPP_NUMBER = "923001234567";
 
 let isOwnerLoggedIn = false;
 let selectedCardId = null;
@@ -12,7 +12,8 @@ let cardIdToDelete = null; // Store card ID for custom delete popup
 let activeFilter = 'All';
 let currentEditImageUrl = "";
 
-let cardsData = [
+// Default Initial Cards Data
+const defaultCards = [
     {
         id: 1,
         title: "Royal Shehnai Full-Elbow",
@@ -35,6 +36,14 @@ let cardsData = [
         images: ["https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80"]
     }
 ];
+
+// LocalStorage se Data load karein, agar nahi hai to default load karein
+let cardsData = JSON.parse(localStorage.getItem('reba_henna_cards')) || defaultCards;
+
+// LocalStorage mein Data save karne ka helper function
+function saveCardsToStorage() {
+    localStorage.setItem('reba_henna_cards', JSON.stringify(cardsData));
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     if (cardsData.length > 0) {
@@ -272,6 +281,9 @@ function saveCardData(e) {
             selectCard(newCard.id, false);
         }
 
+        // --- SAVE PERMANENTLY TO LOCALSTORAGE ---
+        saveCardsToStorage();
+
         toggleAdminModal(false);
         renderCards();
     };
@@ -305,6 +317,10 @@ function confirmDeleteCard() {
     if (!cardIdToDelete) return;
     
     cardsData = cardsData.filter(item => item.id !== cardIdToDelete);
+    
+    // --- SAVE PERMANENTLY TO LOCALSTORAGE ---
+    saveCardsToStorage();
+
     if (selectedCardId === cardIdToDelete) {
         selectedCardId = cardsData.length > 0 ? cardsData[0].id : null;
         if (selectedCardId) selectCard(selectedCardId, false);
@@ -465,12 +481,11 @@ function sendToInstagram() {
     if (!data) return;
 
     navigator.clipboard.writeText(data.message).then(() => {
-        showToast("Details copied to clipboard! Instagram is opening. Paste it in the Direct Message box and hit Send!", true);
+        showToast("Copied to Clipboard!", "Instagram open ho raha hai. Direct Message box mein Paste karke Send karein!", true);
     }).catch(() => {
-        showToast("Opening Instagram", "Direct Message screen is opening...", true);
+        showToast("Opening Instagram", "Direct Message Screen open ho rahi hai...", true);
     });
 
-    // Corrected URLs
     const nativeAppUrl = `instagram://user?username=rebaa.rtistry`;
     const webFallbackUrl = `https://ig.me/m/rebaa.rtistry`;
 
@@ -490,12 +505,11 @@ function sendToTikTok() {
     if (!data) return;
 
     navigator.clipboard.writeText(data.message).then(() => {
-        showToast("Details copied to clipboard! Tiktok is opening. Paste it in the Direct Message box and hit Send!", true);
+        showToast("Copied to Clipboard!", "TikTok open ho raha hai. Direct Message box mein Paste karke Send karein!", true);
     }).catch(() => {
-        showToast("Opening TikTok", "Direct Message screen is opening...", true);
+        showToast("Opening TikTok", "Direct Message Screen open ho rahi hai...", true);
     });
 
-    // Corrected URLs
     const nativeAppUrl = `snssdk1128://user/profile/rebaa.rtistry`;
     const webFallbackUrl = `https://www.tiktok.com/@rebaa.rtistry`;
 
@@ -509,6 +523,7 @@ function sendToTikTok() {
         }, 1200);
     }, 800);
 }
+
 // OPENING DOOR ANIMATION FUNCTION
 function openStudioDoors() {
     const doorLeft = document.getElementById('door-left');
