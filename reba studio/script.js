@@ -4,7 +4,7 @@
 const OWNER_PASSWORD = "A786";
 const INSTAGRAM_USERNAME = "reba_artistry"; 
 const TIKTOK_USERNAME = "reba_artistry";    
-const WHATSAPP_NUMBER = "923001234567";
+
 
 let isOwnerLoggedIn = false;
 let selectedCardId = null;
@@ -465,9 +465,9 @@ function sendToInstagram() {
     if (!data) return;
 
     navigator.clipboard.writeText(data.message).then(() => {
-        showToast("Copied to Clipboard!", "Instagram open ho raha hai. Direct Message box mein Paste karke Send karein!", true);
+        showToast("Details copied to clipboard! Instagram is opening. Paste it in the Direct Message box and hit Send!", true);
     }).catch(() => {
-        showToast("Opening Instagram", "Direct Message Screen open ho rahi hai...", true);
+        showToast("Opening Instagram", "Direct Message screen is opening...", true);
     });
 
     // Corrected URLs
@@ -490,9 +490,9 @@ function sendToTikTok() {
     if (!data) return;
 
     navigator.clipboard.writeText(data.message).then(() => {
-        showToast("Copied to Clipboard!", "TikTok open ho raha hai. Direct Message box mein Paste karke Send karein!", true);
+        showToast("Details copied to clipboard! Tiktok is opening. Paste it in the Direct Message box and hit Send!", true);
     }).catch(() => {
-        showToast("Opening TikTok", "Direct Message Screen open ho rahi hai...", true);
+        showToast("Opening TikTok", "Direct Message screen is opening...", true);
     });
 
     // Corrected URLs
