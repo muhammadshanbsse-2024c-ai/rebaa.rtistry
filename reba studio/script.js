@@ -1,58 +1,175 @@
 // ==========================================
+// FIREBASE CONFIGURATION & INITIALIZATION
+// ==========================================
+const firebaseConfig = {
+    apiKey: "AIzaSyCw4_T2eUsQ0HE1IAUCTVxOnasHB-CntJM",
+    authDomain: "reba-artistry.firebaseapp.com",
+    databaseURL: "https://reba-artistry-default-rtdb.firebaseio.com",
+    projectId: "reba-artistry",
+    storageBucket: "reba-artistry.firebasestorage.app",
+    messagingSenderId: "952166828443",
+    appId: "1:952166828443:web:ce4e06f886df9c85a0b93e",
+    measurementId: "G-5CBHCEWYRK"
+};
+
+// Initialize Firebase
+if (typeof firebase !== 'undefined' && firebase.apps.length === 0) {
+    firebase.initializeApp(firebaseConfig);
+}
+const database = typeof firebase !== 'undefined' ? firebase.database() : null;
+
+// ==========================================
 // CONFIGURATION & GLOBAL STATES
 // ==========================================
 const OWNER_PASSWORD = "A786";
-const INSTAGRAM_USERNAME = "reba_artistry"; 
-const TIKTOK_USERNAME = "reba_artistry";    
-const WHATSAPP_NUMBER = "923001234567";
+const INSTAGRAM_USERNAME = "rebaa.rtistry"; 
+const TIKTOK_USERNAME = "rebaa.rtistry";     
 
 let isOwnerLoggedIn = false;
 let selectedCardId = null;
-let cardIdToDelete = null; // Store card ID for custom delete popup
+let cardIdToDelete = null; 
 let activeFilter = 'All';
 let currentEditImageUrl = "";
+let cardsData = [];
+let isLoading = true; // State for controlling skeleton loaders
 
-// Default Initial Cards Data
-const defaultCards = [
-    {
-        id: 1,
-        title: "Royal Shehnai Full-Elbow",
-        category: "Bridal Heritage",
-        price: 28000,
-        images: ["https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=80"]
-    },
-    {
-        id: 2,
-        title: "Maharani Classic Mid-Arm",
-        category: "Bridal Heritage",
-        price: 18500,
-        images: ["https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=800&q=80"]
-    },
-    {
-        id: 3,
-        title: "Minimalist Arabic Pattern",
-        category: "Contemporary Chic",
-        price: 9500,
-        images: ["https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80"]
-    }
-];
+// ==========================================
+// SUPER FAST BASE64 CONVERTER WITH COMPRESSION
+// ==========================================
+function convertFileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
 
-// LocalStorage se Data load karein, agar nahi hai to default load karein
-let cardsData = JSON.parse(localStorage.getItem('reba_henna_cards')) || defaultCards;
+                // 600px Max limit for instant fast rendering
+                const MAX_SIZE = 600;
 
-// LocalStorage mein Data save karne ka helper function
-function saveCardsToStorage() {
-    localStorage.setItem('reba_henna_cards', JSON.stringify(cardsData));
+                if (width > height) {
+                    if (width > MAX_SIZE) {
+                        height = Math.round((height * MAX_SIZE) / width);
+                        width = MAX_SIZE;
+                    }
+                } else {
+                    if (height > MAX_SIZE) {
+                        width = Math.round((width * MAX_SIZE) / height);
+                        height = MAX_SIZE;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // 50% Quality to keep image light (~30-60KB) & ultra fast
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
+                resolve(compressedBase64);
+            };
+            img.onerror = error => reject(error);
+        };
+        reader.onerror = error => reject(error);
+    });
 }
 
+// REALTIME DATABASE LISTENER
 document.addEventListener("DOMContentLoaded", () => {
-    if (cardsData.length > 0) {
-        selectCard(cardsData[0].id, false);
+    // Show skeleton loaders immediately on app start
+    renderSkeletons();
+
+    if (database) {
+        database.ref('cards').on('value', (snapshot) => {
+            isLoading = false; // Turn off loading state once data arrives
+            const data = snapshot.val();
+            if (data) {
+                cardsData = Object.keys(data).map(key => ({
+                    id: key,
+                    ...data[key]
+                }));
+            } else {
+                cardsData = [];
+            }
+
+            renderCards();
+
+            if (cardsData.length > 0 && !selectedCardId) {
+                selectCard(cardsData[0].id, false);
+            }
+        });
     } else {
+        isLoading = false;
         renderCards();
     }
+
     updateOwnerUIState();
 });
+
+// ==========================================
+// SKELETON LOADER SYSTEM
+// ==========================================
+function renderSkeletons() {
+    const grid = document.getElementById('cards-grid');
+    if (!grid) return;
+
+    // Generates 4 skeleton cards to indicate loading
+    const skeletonHTML = Array(4).fill(0).map(() => `
+        <div class="bg-white rounded-2xl border border-rosepink/20 overflow-hidden shadow-sm animate-pulse flex flex-col justify-between">
+            <div>
+                <!-- Skeleton Image -->
+                <div class="h-72 sm:h-80 bg-slate-200"></div>
+                <div class="p-3.5 space-y-2">
+                    <!-- Skeleton Title -->
+                    <div class="h-4 bg-slate-200 rounded-md w-3/4"></div>
+                    <!-- Skeleton Price -->
+                    <div class="h-3 bg-slate-200 rounded-md w-1/3"></div>
+                </div>
+            </div>
+            <!-- Skeleton Button -->
+            <div class="p-3.5 pt-0">
+                <div class="h-9 bg-slate-200 rounded-xl w-full"></div>
+            </div>
+        </div>
+    `).join('');
+
+    grid.innerHTML = skeletonHTML;
+}
+
+// ==========================================
+// OPENING DOOR ANIMATION FUNCTION
+// ==========================================
+function openStudioDoors() {
+    const doorLeft = document.getElementById('door-left');
+    const doorRight = document.getElementById('door-right');
+    const doorContent = document.getElementById('door-content');
+    const welcomeWindow = document.getElementById('welcome-window');
+
+    if (!doorLeft || !doorRight || !welcomeWindow) return;
+
+    doorLeft.style.transition = 'transform 0.9s cubic-bezier(0.77, 0, 0.175, 1)';
+    doorRight.style.transition = 'transform 0.9s cubic-bezier(0.77, 0, 0.175, 1)';
+
+    if (doorContent) {
+        doorContent.style.transition = 'all 0.3s ease-out';
+        doorContent.style.opacity = '0';
+        doorContent.style.transform = 'scale(0.85)';
+    }
+
+    setTimeout(() => {
+        doorLeft.style.transform = 'translateX(-100%)';
+        doorRight.style.transform = 'translateX(100%)';
+    }, 200);
+
+    setTimeout(() => {
+        welcomeWindow.style.display = 'none';
+        document.body.classList.remove('overflow-hidden');
+    }, 1100);
+}
 
 // UI NAVIGATION & MODALS
 function toggleSideDrawer(open) {
@@ -61,11 +178,11 @@ function toggleSideDrawer(open) {
     if (!drawer || !backdrop) return;
 
     if (open) {
-        drawer.classList.add('drawer-open');
+        drawer.classList.remove('-translate-x-full');
         backdrop.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
     } else {
-        drawer.classList.remove('drawer-open');
+        drawer.classList.add('-translate-x-full');
         backdrop.classList.add('hidden');
         document.body.style.overflow = '';
     }
@@ -222,7 +339,7 @@ function openAddModal() {
 
 function openEditModal(id) {
     if (!isOwnerLoggedIn) return;
-    const card = cardsData.find(item => item.id === id);
+    const card = cardsData.find(item => item.id == id);
     if (!card) return;
 
     const editIdInput = document.getElementById('edit-card-id');
@@ -245,7 +362,7 @@ function openEditModal(id) {
     if (priceInput) priceInput.value = card.price;
     if (fileInput) fileInput.value = '';
     
-    currentEditImageUrl = card.images[0] || "";
+    currentEditImageUrl = card.images ? card.images[0] : "";
     if (previewImg && previewContainer && currentEditImageUrl) {
         previewImg.src = currentEditImageUrl;
         previewContainer.classList.remove('hidden');
@@ -253,49 +370,67 @@ function openEditModal(id) {
     toggleAdminModal(true);
 }
 
-function saveCardData(e) {
+// SAVE CARD DATA (OPTIMIZED FOR FAST SAVING)
+async function saveCardData(e) {
     if (e) e.preventDefault();
+    if (!database) {
+        showToast("Database Error", "Firebase Connection Not Ready!", false);
+        return;
+    }
+
     const editId = document.getElementById('edit-card-id')?.value;
     const title = document.getElementById('new-title')?.value.trim();
     const category = document.getElementById('new-category')?.value;
     const price = Number(document.getElementById('new-price')?.value);
     const fileInput = document.getElementById('new-image-file');
+    const saveBtn = document.getElementById('save-card-btn');
 
     if (!title || !price) {
         showToast("Error", "Please fill design title and price!", false);
         return;
     }
 
-    const executeSave = (imageUrl) => {
-        if (editId) {
-            const cardIndex = cardsData.findIndex(item => item.id == editId);
-            if (cardIndex !== -1) {
-                cardsData[cardIndex] = { ...cardsData[cardIndex], title, category, price, images: [imageUrl] };
-                showToast("Updated!", "Design updated successfully!");
-                if (selectedCardId == editId) selectCard(Number(editId), false);
-            }
-        } else {
-            const newCard = { id: Date.now(), title, category, price, images: [imageUrl] };
-            cardsData.push(newCard);
-            showToast("Published!", "New design added to catalog!");
-            selectCard(newCard.id, false);
+    let finalImageUrl = currentEditImageUrl;
+
+    try {
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerText = "SAVING...";
         }
 
-        // --- SAVE PERMANENTLY TO LOCALSTORAGE ---
-        saveCardsToStorage();
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+            finalImageUrl = await convertFileToBase64(fileInput.files[0]);
+        }
+
+        if (!finalImageUrl) {
+            showToast("Error", "Please select an image!", false);
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerText = editId ? "UPDATE DESIGN" : "PUBLISH DESIGN";
+            }
+            return;
+        }
+
+        const payload = { title, category, price, images: [finalImageUrl] };
+
+        if (editId) {
+            await database.ref('cards/' + editId).update(payload);
+            showToast("Updated!", "Design updated live in Firebase!", true);
+        } else {
+            await database.ref('cards').push(payload);
+            showToast("Published!", "New design added live!", true);
+        }
 
         toggleAdminModal(false);
-        renderCards();
-    };
 
-    if (fileInput && fileInput.files && fileInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function (event) { executeSave(event.target.result); };
-        reader.readAsDataURL(fileInput.files[0]);
-    } else if (editId && currentEditImageUrl) {
-        executeSave(currentEditImageUrl);
-    } else {
-        showToast("Error", "Please upload a photo for the design!", false);
+    } catch (error) {
+        console.error(error);
+        showToast("Error", "Failed to save design to Firebase!", false);
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerText = editId ? "UPDATE DESIGN" : "PUBLISH DESIGN";
+        }
     }
 }
 
@@ -314,21 +449,14 @@ function closeDeleteModal() {
 }
 
 function confirmDeleteCard() {
-    if (!cardIdToDelete) return;
+    if (!cardIdToDelete || !database) return;
     
-    cardsData = cardsData.filter(item => item.id !== cardIdToDelete);
-    
-    // --- SAVE PERMANENTLY TO LOCALSTORAGE ---
-    saveCardsToStorage();
-
-    if (selectedCardId === cardIdToDelete) {
-        selectedCardId = cardsData.length > 0 ? cardsData[0].id : null;
-        if (selectedCardId) selectCard(selectedCardId, false);
-    }
-    
-    closeDeleteModal();
-    showToast("Deleted", "Design card has been removed!", false);
-    renderCards();
+    database.ref('cards/' + cardIdToDelete).remove()
+        .then(() => {
+            showToast("Deleted", "Design card removed live!", false);
+            closeDeleteModal();
+        })
+        .catch(err => showToast("Error", err.message, false));
 }
 
 // RENDER & SELECTION
@@ -338,8 +466,8 @@ function filterCategory(category) {
     const btnBridal = document.getElementById('btn-Bridal');
     const btnContemporary = document.getElementById('btn-Contemporary');
 
-    const activeClasses = "filter-btn active shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-bold bg-henna text-cream transition-all shadow";
-    const inactiveClasses = "filter-btn shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-bold bg-softpink text-henna border border-rosepink/30 hover:bg-rosepink transition-all";
+    const activeClasses = "filter-btn active shrink-0 whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-md transition-all duration-300";
+    const inactiveClasses = "filter-btn shrink-0 whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-white/85 backdrop-blur-md text-hennadark border border-rosepink/30 shadow-sm transition-all duration-300 hover:border-pink-500";
 
     if (btnAll) btnAll.className = category === 'All' ? activeClasses : inactiveClasses;
     if (btnBridal) btnBridal.className = category === 'Bridal Heritage' ? activeClasses : inactiveClasses;
@@ -351,6 +479,12 @@ function filterCategory(category) {
 function renderCards() {
     const grid = document.getElementById('cards-grid');
     if (!grid) return;
+
+    // Show Skeletons if still fetching from Firebase
+    if (isLoading) {
+        renderSkeletons();
+        return;
+    }
 
     const filteredCards = activeFilter === 'All' 
         ? cardsData 
@@ -370,21 +504,23 @@ function renderCards() {
         const isSelected = card.id === selectedCardId;
         const ownerControls = isOwnerLoggedIn ? `
             <div class="absolute top-2 right-2 z-20 flex gap-1.5 bg-hennadark/80 p-1 rounded-lg backdrop-blur-sm border border-rosepink/30">
-                <button onclick="openEditModal(${card.id})" class="w-7 h-7 rounded-md bg-amber-500 text-white flex items-center justify-center text-xs hover:scale-105 transition-all">
+                <button onclick="openEditModal('${card.id}')" class="w-7 h-7 rounded-md bg-amber-500 text-white flex items-center justify-center text-xs hover:scale-105 transition-all">
                     <i class="fa-solid fa-pen"></i>
                 </button>
-                <button onclick="triggerDeleteModal(${card.id})" class="w-7 h-7 rounded-md bg-rose-600 text-white flex items-center justify-center text-xs hover:scale-105 transition-all">
+                <button onclick="triggerDeleteModal('${card.id}')" class="w-7 h-7 rounded-md bg-rose-600 text-white flex items-center justify-center text-xs hover:scale-105 transition-all">
                     <i class="fa-solid fa-trash"></i>
                 </button>
             </div>
         ` : '';
 
+        const imgSrc = (card.images && card.images[0]) ? card.images[0] : '';
+
         return `
-            <div class="bg-white rounded-2xl border-2 ${isSelected ? 'border-rosepink ring-2 ring-rosepink/30' : 'border-rosepink/20'} overflow-hidden shadow-sm hover:shadow-md transition-all relative flex flex-col justify-between">
+            <div class="bg-white rounded-2xl border-2 ${isSelected ? 'border-pink-500 ring-2 ring-rosepink/40 shadow-lg' : 'border-rosepink/20'} overflow-hidden shadow-sm hover:shadow-md transition-all relative flex flex-col justify-between">
                 ${ownerControls}
                 <div>
                     <div class="relative h-72 sm:h-80 overflow-hidden bg-gray-100">
-                        <img src="${card.images[0]}" alt="${card.title}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
+                        <img src="${imgSrc}" alt="${card.title}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
                         <span class="absolute bottom-2 left-2 bg-hennadark/80 text-rosepink text-[9px] font-bold uppercase px-2 py-0.5 rounded-md backdrop-blur-sm">
                             ${card.category}
                         </span>
@@ -392,14 +528,14 @@ function renderCards() {
 
                     <div class="p-3.5">
                         <h4 class="font-serif font-extrabold text-base text-henna line-clamp-1">${card.title}</h4>
-                        <p class="text-xs font-black text-rosepinkdark mt-0.5">Rs. ${card.price.toLocaleString()}</p>
+                        <p class="text-xs font-black text-rosepinkdark mt-0.5">Rs. ${card.price ? card.price.toLocaleString() : 0}</p>
                     </div>
                 </div>
 
                 <div class="p-3.5 pt-0">
-                    <button onclick="selectCard(${card.id}, true)" class="w-full py-2.5 px-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${isSelected ? 'bg-rosepink text-hennadark' : 'bg-softpink text-henna border border-rosepink/30 hover:bg-rosepink/40'}">
-                        <i class="fa-solid ${isSelected ? 'fa-circle-check' : 'fa-plus'}"></i>
-                        ${isSelected ? 'Selected (Reserve Slot)' : 'Select Design'}
+                    <button onclick="selectCard('${card.id}', true)" class="select-design-btn w-full py-2.5 px-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5">
+                        <i class="fa-solid ${isSelected ? 'fa-circle-check text-green-600' : 'fa-plus text-rosepink'}"></i>
+                        <span>${isSelected ? 'Selected (Reserve Slot)' : 'Select Design'}</span>
                     </button>
                 </div>
             </div>
@@ -411,7 +547,7 @@ function renderCards() {
 
 function selectCard(id, autoOpenModal = true) {
     selectedCardId = id;
-    const card = cardsData.find(c => c.id === id);
+    const card = cardsData.find(c => c.id == id);
 
     if (card) {
         const cardTitleInput = document.getElementById('selected-card-title');
@@ -420,9 +556,9 @@ function selectCard(id, autoOpenModal = true) {
         const bottomBarPrice = document.getElementById('bottom-bar-price');
         
         if (cardTitleInput) cardTitleInput.value = card.title;
-        if (modalDesignName) modalDesignName.innerText = `${card.title} - Rs. ${card.price.toLocaleString()}`;
+        if (modalDesignName) modalDesignName.innerText = `${card.title} - Rs. ${card.price ? card.price.toLocaleString() : 0}`;
         if (bottomBarTitle) bottomBarTitle.innerText = card.title;
-        if (bottomBarPrice) bottomBarPrice.innerText = `Rs. ${card.price.toLocaleString()}`;
+        if (bottomBarPrice) bottomBarPrice.innerText = `Rs. ${card.price ? card.price.toLocaleString() : 0}`;
     }
 
     renderCards();
@@ -438,9 +574,10 @@ function renderChosenSlider() {
 
     slider.innerHTML = cardsData.map(card => {
         const isSelected = card.id === selectedCardId;
+        const imgSrc = (card.images && card.images[0]) ? card.images[0] : '';
         return `
-            <div onclick="selectCard(${card.id}, false)" class="shrink-0 cursor-pointer rounded-lg border-2 overflow-hidden transition-all relative w-12 h-12 ${isSelected ? 'border-rosepink ring-2 ring-rosepink/40 scale-105' : 'border-transparent opacity-60 hover:opacity-100'}">
-                <img src="${card.images[0]}" class="w-full h-full object-cover" alt="${card.title}">
+            <div onclick="selectCard('${card.id}', false)" class="shrink-0 cursor-pointer rounded-lg border-2 overflow-hidden transition-all relative w-12 h-12 ${isSelected ? 'border-pink-500 ring-2 ring-rosepink/40 scale-105' : 'border-transparent opacity-60 hover:opacity-100'}">
+                <img src="${imgSrc}" class="w-full h-full object-cover" alt="${card.title}">
             </div>
         `;
     }).join('');
@@ -522,31 +659,4 @@ function sendToTikTok() {
             }
         }, 1200);
     }, 800);
-}
-
-// OPENING DOOR ANIMATION FUNCTION
-function openStudioDoors() {
-    const doorLeft = document.getElementById('door-left');
-    const doorRight = document.getElementById('door-right');
-    const doorContent = document.getElementById('door-content');
-    const welcomeWindow = document.getElementById('welcome-window');
-
-    if (doorLeft && doorRight && doorContent) {
-        // 1. Center Emblem aur Button fade-out hoga
-        doorContent.style.opacity = '0';
-        doorContent.style.transform = 'scale(0.8)';
-
-        // 2. Darwaze Dono Taraf Slide Open Honge
-        setTimeout(() => {
-            doorLeft.style.transform = 'translateX(-100%)';
-            doorRight.style.transform = 'translateX(100%)';
-        }, 200);
-
-        // 3. Animation khatam hone par overlay poori tarah hat jayega
-        setTimeout(() => {
-            if (welcomeWindow) {
-                welcomeWindow.style.display = 'none';
-            }
-        }, 1200);
-    }
 }
