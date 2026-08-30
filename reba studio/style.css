@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --color-cream: #FFFDF9;
+    --color-softpink: #FDF4F5;
+    --color-rosepink: #E8A0BF;
+    --color-rosepinkdark: #C25983;
+    --color-henna: #4A2E2B;
+    --color-hennadark: #2A1713;
+}
+
+/* Full height mobile viewport fix for iPhones & Safari */
+html, body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    -webkit-tap-highlight-color: transparent;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--color-softpink);
+    color: var(--color-hennadark);
+    -webkit-overflow-scrolling: touch;
+}
+
+.font-serif {
+    font-family: 'Playfair Display', serif;
+}
+
+.bg-cream { background-color: var(--color-cream); }
+.bg-softpink { background-color: var(--color-softpink); }
+.bg-rosepink { background-color: var(--color-rosepink); }
+.bg-henna { background-color: var(--color-henna); }
+.bg-hennadark { background-color: var(--color-hennadark); }
+
+.text-cream { color: var(--color-cream); }
+.text-rosepink { color: var(--color-rosepink); }
+.text-rosepinkdark { color: var(--color-rosepinkdark); }
+.text-henna { color: var(--color-henna); }
+.text-hennadark { color: var(--color-hennadark); }
+
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* SIDE DRAWER ANIMATION */
+#side-drawer {
+    transition: transform 0.3s ease-in-out;
+}
+
+#side-drawer.drawer-open {
+    transform: translateX(0) !important;
+}
+
+/* Bottom Bar Notch and Dynamic Inset Fix for Mobile Devices */
+.fixed.bottom-0 {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom)) !important;
+}
+
+#slot-modal {
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom)) !important;
+}
+
+/* Grid layout tweak for small mobile screens */
+@media screen and (max-width: 640px) {
+    #cards-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.25rem !important;
+    }
+}
