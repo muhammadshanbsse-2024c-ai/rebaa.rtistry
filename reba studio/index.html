@@ -130,37 +130,43 @@
     </div>
 </div>
 
-<!-- HEADER SECTION -->
-<header class="w-full bg-hennadark/95 text-cream px-4 sm:px-6 py-3.5 border-b border-rosepink/20 sticky top-0 z-40 backdrop-blur-md shadow-lg">
-    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
-        <div class="flex items-center gap-3 min-w-0">
-            <button onclick="toggleSideDrawer(true)" class="text-rosepink hover:text-white p-2.5 rounded-xl bg-white/5 border border-rosepink/20 transition-all duration-300 transform hover:scale-105 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 active:scale-95 group" aria-label="Open Navigation Drawer">
-                <i class="fa-solid fa-bars text-sm group-hover:text-white transition-colors duration-300"></i>
-            </button>
-            <div class="min-w-0">
-                <h1 class="font-serif font-black text-sm sm:text-xl tracking-wider text-cream truncate">
-                    REBA <span class="text-rosepink font-sans font-light text-xs sm:text-sm">ARTISTRY</span>
-                </h1>
-                <p class="text-[9px] sm:text-[10px] text-rosepink/80 font-bold tracking-tight truncate">
-                    <i class="fa-solid fa-location-dot text-[8px] mr-1"></i>Hayatabad, Peshawar
-                </p>
+<header class="w-full bg-hennadark text-cream px-2.5 sm:px-6 py-2.5 border-b border-rosepink/20 sticky top-0 z-40 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-1.5 sm:gap-3">
+            
+            <div class="flex items-center gap-1.5 sm:gap-2.5 min-w-0 shrink">
+                <button onclick="toggleSideDrawer(true)" class="text-rosepink hover:text-white p-1.5 sm:p-2 rounded-xl bg-white/5 border border-rosepink/20 transition-all duration-300 active:scale-95 shrink-0" aria-label="Open Drawer">
+                    <i class="fa-solid fa-bars text-xs sm:text-sm"></i>
+                </button>
+                <div class="min-w-0">
+                    <h1 class="font-serif font-black text-[13px] xs:text-sm sm:text-lg tracking-wide text-cream whitespace-nowrap overflow-hidden text-ellipsis">
+                        REBA <span class="text-rosepink font-sans font-light text-[10px] sm:text-xs">ARTISTRY</span>
+                    </h1>
+                    <p class="text-[8px] sm:text-[10px] text-rosepink/80 font-bold tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                        <i class="fa-solid fa-location-dot text-[7px] mr-0.5"></i>Hayatabad, Peshawar
+                    </p>
+                </div>
             </div>
+
+            <div class="flex items-center gap-1 sm:gap-2 shrink-0">
+                <button id="analytics-btn" onclick="toggleAnalyticsModal(true)" class="hidden p-1.5 sm:p-2 rounded-xl bg-rosepink/20 border border-rosepink/30 text-rosepink hover:text-white hover:bg-rosepink transition-all relative active:scale-95 shrink-0" title="Traffic Analytics">
+                    <i class="fa-solid fa-chart-pie text-xs sm:text-sm"></i>
+                    <span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-rose-500 rounded-full animate-ping"></span>
+                    <span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-rose-500 rounded-full"></span>
+                </button>
+
+                <button id="direct-add-btn" class="hidden px-2 sm:px-3 py-1.5 rounded-xl bg-amber-500 text-white font-extrabold text-[9px] sm:text-xs tracking-wider uppercase transition-all shadow-md flex items-center gap-1 active:scale-95 shrink-0">
+                    <i class="fa-solid fa-plus text-[9px]"></i>
+                    <span class="hidden xs:inline whitespace-nowrap">Add Design</span>
+                </button>
+
+              <!-- Owner Auth Button (Icon Only) -->
+                <button onclick="handleOwnerAuth()" id="owner-auth-btn" class="p-2 sm:p-2.5 rounded-xl bg-white/10 border border-rosepink/30 text-rosepink transition-all duration-300 flex items-center justify-center active:scale-95 shrink-0 hover:bg-rosepink hover:text-white" title="Owner Access">
+                    <i id="lock-icon" class="fa-solid fa-lock text-xs sm:text-sm transition-transform duration-300"></i>
+                </button>
+            </div>
+
         </div>
-
-        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
-            <button id="direct-add-btn" class="hidden px-3 sm:px-4 py-2 rounded-xl bg-amber-500 text-white font-extrabold text-[10px] sm:text-xs tracking-wider uppercase transition-all duration-300 transform hover:-translate-y-0.5 hover:scale-105 hover:bg-amber-600 shadow-md flex items-center gap-1.5 active:scale-95">
-                <i class="fa-solid fa-plus text-[10px]"></i>
-                <span class="whitespace-nowrap">Add Design</span>
-            </button>
-
-            <button onclick="handleOwnerAuth()" id="owner-auth-btn" class="px-3 sm:px-4 py-2 rounded-xl bg-white/10 border border-rosepink/30 text-rosepink font-extrabold text-[10px] sm:text-xs transition-all duration-300 transform hover:-translate-y-0.5 hover:scale-105 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 hover:text-white flex items-center gap-1.5 active:scale-95 group">
-                <i id="lock-icon" class="fa-solid fa-lock text-[10px] group-hover:text-white transition-colors duration-300"></i>
-                <span id="owner-btn-text" class="whitespace-nowrap group-hover:text-white transition-colors duration-300">Owner Panel</span>
-            </button>
-        </div>
-    </div>
-</header>
-
+    </header>
 <!-- MAIN APP CONTENT -->
 <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 pb-36 sm:pb-40 w-full flex-grow">
     
@@ -170,6 +176,7 @@
             <button id="btn-All" onclick="filterCategory('All')" class="filter-btn active shrink-0 whitespace-nowrap px-5 py-2.5 rounded-full text-xs font-bold bg-white/90 backdrop-blur-md border border-rosepink/30 text-hennadark shadow-sm transition-all duration-300 transform hover:-translate-y-0.5 hover:scale-105 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 hover:text-white">All Designs</button>
             <button id="btn-Bridal" onclick="filterCategory('Bridal Heritage')" class="filter-btn shrink-0 whitespace-nowrap px-5 py-2.5 rounded-full text-xs font-bold bg-white/90 backdrop-blur-md text-hennadark border border-rosepink/30 shadow-sm transition-all duration-300 transform hover:-translate-y-0.5 hover:scale-105 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 hover:text-white">Bridal Designs</button>
             <button id="btn-Contemporary" onclick="filterCategory('Contemporary Chic')" class="filter-btn shrink-0 whitespace-nowrap px-5 py-2.5 rounded-full text-xs font-bold bg-white/90 backdrop-blur-md text-hennadark border border-rosepink/30 shadow-sm transition-all duration-300 transform hover:-translate-y-0.5 hover:scale-105 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 hover:text-white">Contemporary Designs</button>
+            <button id="btn-Aqua" onclick="filterCategory('Aqua Tattoos')" class="filter-btn shrink-0 whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-white/85 backdrop-blur-md text-hennadark border border-rosepink/30 shadow-sm transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 hover:text-white">Aqua Tattoos</button>
         </div>
         <span id="slider-card-count" class="text-[11px] font-extrabold text-rosepinkdark bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-rosepink/20 shrink-0 shadow-sm">0 Available</span>
     </div>
@@ -316,7 +323,57 @@
         </form>
     </div>
 </div>
+<!-- TRAFFIC ANALYTICS POPUP MODAL -->
+<div id="analytics-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9990] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl border border-rosepink/30 relative">
+        <button onclick="toggleAnalyticsModal(false)" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        
+        <div class="w-12 h-12 bg-rosepink/20 rounded-full flex items-center justify-center text-rosepink mx-auto mb-3">
+            <i class="fa-solid fa-chart-line text-lg"></i>
+        </div>
+        
+        <h4 class="font-serif font-bold text-lg text-henna mb-1">Traffic Sources</h4>
+        <p class="text-xs text-gray-500 mb-5">Website Visitors Breakdown</p>
 
+        <!-- Stats Grid -->
+        <div class="space-y-3 text-left">
+            <!-- Instagram -->
+            <div class="flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-purple-50 to-pink-50 border border-pink-200">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-brands fa-instagram text-pink-600 text-lg"></i>
+                    <span class="text-xs font-extrabold text-gray-700">Instagram Visitors</span>
+                </div>
+                <span id="stat-insta" class="text-xs font-black text-pink-600 bg-white px-2.5 py-1 rounded-xl shadow-sm">0</span>
+            </div>
+
+            <!-- TikTok -->
+            <div class="flex items-center justify-between p-3 rounded-2xl bg-gray-50 border border-gray-200">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-brands fa-tiktok text-black text-lg"></i>
+                    <span class="text-xs font-extrabold text-gray-700">TikTok Visitors</span>
+                </div>
+                <span id="stat-tiktok" class="text-xs font-black text-black bg-white px-2.5 py-1 rounded-xl shadow-sm">0</span>
+            </div>
+
+            <!-- Other / Direct -->
+            <div class="flex items-center justify-between p-3 rounded-2xl bg-rose-50 border border-rose-200">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-globe text-rosepinkdark text-lg"></i>
+                    <span class="text-xs font-extrabold text-gray-700">Other / Direct Visitors</span>
+                </div>
+                <span id="stat-other" class="text-xs font-black text-rosepinkdark bg-white px-2.5 py-1 rounded-xl shadow-sm">0</span>
+            </div>
+        </div>
+
+        <!-- Total Badge -->
+        <div class="mt-5 pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-gray-500">
+            <span>Total Visitors:</span>
+            <span id="stat-total" class="text-henna font-extrabold text-sm">0</span>
+        </div>
+    </div>
+</div>
 <!-- ADD / EDIT DESIGN MODAL -->
 <div id="admin-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-rosepink/30 relative max-h-[90vh] overflow-y-auto">
@@ -335,10 +392,11 @@
 
             <div>
                 <label class="text-[10px] font-bold uppercase tracking-wider text-gray-500 block mb-1">Category</label>
-                <select id="new-category" class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-200 focus:outline-none focus:border-rosepink bg-gray-50">
-                    <option value="Bridal Heritage">Bridal Heritage</option>
-                    <option value="Contemporary Chic">Contemporary Chic</option>
-                </select>
+               <select id="new-category" class="w-full mt-1 px-3 py-2 text-xs rounded-xl border border-gray-200 focus:outline-none focus:border-rosepink bg-gray-50">
+                   <option value="Bridal Heritage">Bridal Heritage</option>
+                   <option value="Contemporary Chic">Contemporary Chic</option>
+                   <option value="Aqua Tattoos">Aqua Tattoos</option>
+               </select>
             </div>
 
             <div>
@@ -385,6 +443,9 @@
             </a>
             <a href="#" onclick="filterCategory('Contemporary Chic'); toggleSideDrawer(false)" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-white/5 text-xs font-bold border border-rosepink/20 text-cream transition-all duration-300 transform hover:-translate-y-0.5 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 hover:text-white group">
                 <i class="fa-solid fa-gem text-rosepink group-hover:text-white transition-colors duration-300"></i> Contemporary designs
+            </a>
+            <a href="#" onclick="filterCategory('Aqua Tattoos'); toggleSideDrawer(false)" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-white/5 text-xs font-bold border border-rosepink/20 text-cream transition-all duration-300 transform hover:-translate-y-0.5 hover:scale-102 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 hover:text-white group">
+                <i class="fa-solid fa-droplet text-rosepink group-hover:text-white transition-colors duration-300"></i> Aqua Tattoos
             </a>
         </nav>
 
@@ -436,7 +497,7 @@
 <!-- FIREBASE SDK LIBRARIES -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <!-- MAIN SCRIPT -->
 <script src="script.js"></script>
 </body>
