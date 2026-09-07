@@ -174,9 +174,9 @@
     <div class="flex items-center justify-between gap-3 pt-2 pb-3 mb-6 overflow-x-auto scrollbar-none z-10 relative">
         <div class="flex items-center gap-2.5 p-1">
             <button id="btn-All" onclick="filterCategory('All')" class="filter-btn active shrink-0 whitespace-nowrap px-5 py-2.5 rounded-full text-xs font-bold bg-white/90 backdrop-blur-md border border-rosepink/30 text-hennadark shadow-sm transition-all duration-300 transform hover:-translate-y-0.5 hover:scale-105 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 hover:text-white">All Designs</button>
-            <button id="btn-Bridal" onclick="filterCategory('Bridal Heritage')" class="filter-btn shrink-0 whitespace-nowrap px-5 py-2.5 rounded-full text-xs font-bold bg-white/90 backdrop-blur-md text-hennadark border border-rosepink/30 shadow-sm transition-all duration-300 transform hover:-translate-y-0.5 hover:scale-105 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 hover:text-white">Bridal Designs</button>
-            <button id="btn-Contemporary" onclick="filterCategory('Contemporary Chic')" class="filter-btn shrink-0 whitespace-nowrap px-5 py-2.5 rounded-full text-xs font-bold bg-white/90 backdrop-blur-md text-hennadark border border-rosepink/30 shadow-sm transition-all duration-300 transform hover:-translate-y-0.5 hover:scale-105 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 hover:text-white">Contemporary Designs</button>
-            <button id="btn-Aqua" onclick="filterCategory('Aqua Tattoos')" class="filter-btn shrink-0 whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-white/85 backdrop-blur-md text-hennadark border border-rosepink/30 shadow-sm transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 hover:text-white">Jagua Tattoos</button>
+            <button id="btn-Bridal" onclick="filterCategory('Bridal Designs')" class="filter-btn shrink-0 whitespace-nowrap px-5 py-2.5 rounded-full text-xs font-bold bg-white/90 backdrop-blur-md text-hennadark border border-rosepink/30 shadow-sm transition-all duration-300 transform hover:-translate-y-0.5 hover:scale-105 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 hover:text-white">Bridal Designs</button>
+            <button id="btn-Contemporary" onclick="filterCategory('Contemporary Designs')" class="filter-btn shrink-0 whitespace-nowrap px-5 py-2.5 rounded-full text-xs font-bold bg-white/90 backdrop-blur-md text-hennadark border border-rosepink/30 shadow-sm transition-all duration-300 transform hover:-translate-y-0.5 hover:scale-105 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 hover:text-white">Contemporary Designs</button>
+            <button id="btn-Aqua" onclick="filterCategory('Jagua Tattoos')" class="filter-btn shrink-0 whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-white/85 backdrop-blur-md text-hennadark border border-rosepink/30 shadow-sm transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 hover:text-white">Jagua Tattoos</button>
         </div>
         <span id="slider-card-count" class="text-[11px] font-extrabold text-rosepinkdark bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-rosepink/20 shrink-0 shadow-sm">0 Available</span>
     </div>
@@ -335,7 +335,14 @@
         </div>
         
         <h4 class="font-serif font-bold text-lg text-henna mb-1">Traffic Sources</h4>
-        <p class="text-xs text-gray-500 mb-5">Website Visitors Breakdown</p>
+        <p class="text-xs text-gray-500 mb-4">Website Visitors Breakdown</p>
+
+        <!-- Timeframe Selector Tabs -->
+        <div class="flex items-center justify-center gap-2 mb-4 bg-gray-50 p-1.5 rounded-2xl border border-gray-100">
+            <button id="btn-24h" onclick="setTimeframe('24h')" class="timeframe-btn text-xs font-bold px-3 py-1.5 rounded-xl bg-rosepink text-white transition-all">24h</button>
+            <button id="btn-7d" onclick="setTimeframe('7d')" class="timeframe-btn text-xs font-bold px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all">7 Days</button>
+            <button id="btn-30d" onclick="setTimeframe('30d')" class="timeframe-btn text-xs font-bold px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all">30 Days</button>
+        </div>
 
         <!-- Stats Grid -->
         <div class="space-y-3 text-left">
@@ -345,7 +352,7 @@
                     <i class="fa-brands fa-instagram text-pink-600 text-lg"></i>
                     <span class="text-xs font-extrabold text-gray-700">Instagram Visitors</span>
                 </div>
-                <span id="stat-insta" class="text-xs font-black text-pink-600 bg-white px-2.5 py-1 rounded-xl shadow-sm">0</span>
+                <span id="instagramCount" class="text-xs font-black text-pink-600 bg-white px-2.5 py-1 rounded-xl shadow-sm">0</span>
             </div>
 
             <!-- TikTok -->
@@ -354,7 +361,7 @@
                     <i class="fa-brands fa-tiktok text-black text-lg"></i>
                     <span class="text-xs font-extrabold text-gray-700">TikTok Visitors</span>
                 </div>
-                <span id="stat-tiktok" class="text-xs font-black text-black bg-white px-2.5 py-1 rounded-xl shadow-sm">0</span>
+                <span id="tiktokCount" class="text-xs font-black text-black bg-white px-2.5 py-1 rounded-xl shadow-sm">0</span>
             </div>
 
             <!-- Other / Direct -->
@@ -363,16 +370,25 @@
                     <i class="fa-solid fa-globe text-rosepinkdark text-lg"></i>
                     <span class="text-xs font-extrabold text-gray-700">Other / Direct Visitors</span>
                 </div>
-                <span id="stat-other" class="text-xs font-black text-rosepinkdark bg-white px-2.5 py-1 rounded-xl shadow-sm">0</span>
+                <span id="directCount" class="text-xs font-black text-rosepinkdark bg-white px-2.5 py-1 rounded-xl shadow-sm">0</span>
             </div>
         </div>
 
         <!-- Total Badge -->
         <div class="mt-5 pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-gray-500">
             <span>Total Visitors:</span>
-            <span id="stat-total" class="text-henna font-extrabold text-sm">0</span>
+            <span id="totalVisitorsCount" class="text-henna font-extrabold text-sm">0</span>
         </div>
     </div>
+</div>
+
+        <!-- Total Badge -->
+        <div class="mt-5 pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-gray-500">
+            <span>Total Visitors:</span>
+            <span id="totalVisitorsCount" class="text-henna font-extrabold text-sm">0</span>
+        </div>
+    </div>
+</div>
 </div>
 <!-- ADD / EDIT DESIGN MODAL -->
 <div id="admin-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -393,9 +409,9 @@
             <div>
                 <label class="text-[10px] font-bold uppercase tracking-wider text-gray-500 block mb-1">Category</label>
                <select id="new-category" class="w-full mt-1 px-3 py-2 text-xs rounded-xl border border-gray-200 focus:outline-none focus:border-rosepink bg-gray-50">
-                   <option value="Bridal Heritage">Bridal Design</option>
-                   <option value="Contemporary Chic">Contemporary Design</option>
-                   <option value="Aqua Tattoos">Jagua Tattoos</option>
+                   <option value="Bridal Designs">Bridal Design</option>
+                   <option value="Contemporary Designs">Contemporary Design</option>
+                   <option value="Jagua Tattoos">Jagua Tattoos</option>
                </select>
             </div>
 
@@ -444,7 +460,7 @@
             <a href="#" onclick="filterCategory('Contemporary Chic'); toggleSideDrawer(false)" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-white/5 text-xs font-bold border border-rosepink/20 text-cream transition-all duration-300 transform hover:-translate-y-0.5 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 hover:text-white group">
                 <i class="fa-solid fa-gem text-rosepink group-hover:text-white transition-colors duration-300"></i> Contemporary designs
             </a>
-            <a href="#" onclick="filterCategory('Aqua Tattoos'); toggleSideDrawer(false)" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-white/5 text-xs font-bold border border-rosepink/20 text-cream transition-all duration-300 transform hover:-translate-y-0.5 hover:scale-102 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 hover:text-white group">
+            <a href="#" onclick="filterCategory('Jagua Tattoos'); toggleSideDrawer(false)" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-white/5 text-xs font-bold border border-rosepink/20 text-cream transition-all duration-300 transform hover:-translate-y-0.5 hover:scale-102 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 hover:text-white group">
                 <i class="fa-solid fa-droplet text-rosepink group-hover:text-white transition-colors duration-300"></i> Jagua Tattoos
             </a>
         </nav>
@@ -497,7 +513,6 @@
 <!-- FIREBASE SDK LIBRARIES -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <!-- MAIN SCRIPT -->
 <script src="script.js"></script>
 </body>
