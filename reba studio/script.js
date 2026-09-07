@@ -17,7 +17,7 @@ if (typeof firebase !== 'undefined' && firebase.apps.length === 0) {
     firebase.initializeApp(firebaseConfig);
 }
 const database = typeof firebase !== 'undefined' ? firebase.database() : null;
-
+const db = (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore() : database;
 // ==========================================
 // CONFIGURATION & GLOBAL STATES
 // ==========================================
@@ -279,23 +279,39 @@ function verifyOwnerPasscode(event) {
 
 function updateOwnerUIState() {
     const lockIcon = document.getElementById('lock-icon');
-    const ownerBtnText = document.getElementById('owner-btn-text');
+    const ownerAuthBtn = document.getElementById('owner-auth-btn');
     const directAddBtn = document.getElementById('direct-add-btn');
+    const analyticsBtn = document.getElementById('analytics-btn');
 
     if (isOwnerLoggedIn) {
-        if (lockIcon) lockIcon.className = "fa-solid fa-unlock text-rosepink text-[10px]";
-        if (ownerBtnText) ownerBtnText.innerText = "Deactivate Owner";
+        // Owner Mode Active: Open Lock Icon + Green Glow
+        if (lockIcon) {
+            lockIcon.className = "fa-solid fa-lock-open text-xs sm:text-sm text-emerald-400 transform rotate-12 transition-all duration-300";
+        }
+        if (ownerAuthBtn) {
+            ownerAuthBtn.title = "Deactivate Owner Mode";
+            ownerAuthBtn.classList.add('border-emerald-400/50', 'bg-emerald-500/10');
+            ownerAuthBtn.classList.remove('border-rosepink/30', 'bg-white/10');
+        }
         if (directAddBtn) {
             directAddBtn.classList.remove('hidden');
             directAddBtn.onclick = () => openAddModal();
         }
+        if (analyticsBtn) analyticsBtn.classList.remove('hidden');
     } else {
-        if (lockIcon) lockIcon.className = "fa-solid fa-lock text-rosepink text-[10px]";
-        if (ownerBtnText) ownerBtnText.innerText = "Owner Panel";
+        // Owner Mode Deactive: Closed Lock Icon
+        if (lockIcon) {
+            lockIcon.className = "fa-solid fa-lock text-xs sm:text-sm text-rosepink transition-all duration-300";
+        }
+        if (ownerAuthBtn) {
+            ownerAuthBtn.title = "Activate Owner Mode";
+            ownerAuthBtn.classList.remove('border-emerald-400/50', 'bg-emerald-500/10');
+            ownerAuthBtn.classList.add('border-rosepink/30', 'bg-white/10');
+        }
         if (directAddBtn) directAddBtn.classList.add('hidden');
+        if (analyticsBtn) analyticsBtn.classList.add('hidden');
     }
 }
-
 function logoutOwner() {
     isOwnerLoggedIn = false;
     updateOwnerUIState();
@@ -465,15 +481,18 @@ function filterCategory(category) {
     const btnAll = document.getElementById('btn-All');
     const btnBridal = document.getElementById('btn-Bridal');
     const btnContemporary = document.getElementById('btn-Contemporary');
+    const btnAqua = document.getElementById('btn-Aqua');
 
-    const activeClasses = "filter-btn active shrink-0 whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-md transition-all duration-300";
-    const inactiveClasses = "filter-btn shrink-0 whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-white/85 backdrop-blur-md text-hennadark border border-rosepink/30 shadow-sm transition-all duration-300 hover:border-pink-500";
+    const activeClasses = "filter-btn active shrink-0 whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-white/85 backdrop-blur-md border border-rosepink/30 text-hennadark shadow-sm transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 hover:text-white";
+    const inactiveClasses = "filter-btn shrink-0 whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-white/85 backdrop-blur-md text-hennadark border border-rosepink/30 shadow-sm transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 hover:text-white";
 
     if (btnAll) btnAll.className = category === 'All' ? activeClasses : inactiveClasses;
     if (btnBridal) btnBridal.className = category === 'Bridal Heritage' ? activeClasses : inactiveClasses;
     if (btnContemporary) btnContemporary.className = category === 'Contemporary Chic' ? activeClasses : inactiveClasses;
+    if (btnAqua) btnAqua.className = category === 'Aqua Tattoos' ? activeClasses : inactiveClasses;
 
     renderCards();
+
 }
 
 function renderCards() {
@@ -660,3 +679,114 @@ function sendToTikTok() {
         }, 1200);
     }, 800);
 }
+// ==========================================
+// ADVANCED TRAFFIC ANALYTICS LOGIC (STEP 2)
+// ==========================================
+
+// 1. Visitor Source Detection (Instagram, TikTok, Direct)
+function getTrafficSource() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const utmSource = urlParams.get('utm_source')?.toLowerCase();
+    const referrer = document.referrer.toLowerCase();
+
+    if (utmSource === 'instagram' || referrer.includes('instagram.com')) {
+        return 'instagram';
+    } else if (utmSource === 'tiktok' || referrer.includes('tiktok.com')) {
+        return 'tiktok';
+    } else {
+        return 'other';
+    }
+}
+
+// Visitor Tracking for Realtime Database
+function trackVisitorSource() {
+    if (!database) return;
+
+    if (sessionStorage.getItem('visited_session')) {
+        return; 
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const source = urlParams.get('utm_source');
+    let trackingKey = 'direct';
+
+    if (source === 'instagram') {
+        trackingKey = 'instagram';
+    } else if (source === 'tiktok') {
+        trackingKey = 'tiktok';
+    }
+
+    const analyticsRef = database.ref('analytics/' + trackingKey);
+    analyticsRef.transaction((currentValue) => {
+        return (currentValue || 0) + 1;
+    }, (error, committed) => {
+        if (committed) {
+            sessionStorage.setItem('visited_session', 'true');
+        }
+    });
+}
+
+// Live Analytics Listener for Realtime Database
+function listenAnalyticsData() {
+    if (!database) return;
+
+    const analyticsRef = database.ref('analytics');
+    analyticsRef.on('value', (snapshot) => {
+        const data = snapshot.val() || {};
+        
+        const instagramCount = data.instagram || 0;
+        const tiktokCount = data.tiktok || 0;
+        const directCount = data.direct || 0;
+        const total = instagramCount + tiktokCount + directCount;
+
+        // UI elements update
+        const instaElem = document.getElementById('instagramCount');
+        const tiktokElem = document.getElementById('tiktokCount');
+        const directElem = document.getElementById('directCount');
+        const totalElem = document.getElementById('totalVisitorsCount');
+
+        if (instaElem) instaElem.innerText = instagramCount;
+        if (tiktokElem) tiktokElem.innerText = tiktokCount;
+        if (directElem) directElem.innerText = directCount;
+        if (totalElem) totalElem.innerText = total;
+    });
+}
+
+// Page Load par Call karein
+trackVisitorSource();
+
+// 3. Live Analytics Modal Stream
+function listenAnalyticsData() {
+    db.collection("analytics").doc("traffic").onSnapshot((doc) => {
+        if (doc.exists) {
+            const data = doc.data();
+            const instaEl = document.getElementById("stat-insta");
+            const tiktokEl = document.getElementById("stat-tiktok");
+            const otherEl = document.getElementById("stat-other");
+            const totalEl = document.getElementById("stat-total");
+
+            if (instaEl) instaEl.innerText = data.instagram || 0;
+            if (tiktokEl) tiktokEl.innerText = data.tiktok || 0;
+            if (otherEl) otherEl.innerText = data.other || 0;
+            if (totalEl) totalEl.innerText = data.total || 0;
+        }
+    });
+}
+
+// 4. Toggle Analytics Modal
+function toggleAnalyticsModal(show) {
+    const modal = document.getElementById('analytics-modal');
+    if (!modal) return;
+    if (show) {
+        modal.classList.remove('hidden');
+        listenAnalyticsData();
+    } else {
+        modal.classList.add('hidden');
+    }
+}
+
+// Auto track visitor and start real-time listener on page load
+document.addEventListener("DOMContentLoaded", () => {
+    trackVisitorSource();
+    listenAnalyticsData();
+});
