@@ -16,8 +16,10 @@ const firebaseConfig = {
 if (typeof firebase !== 'undefined' && firebase.apps.length === 0) {
     firebase.initializeApp(firebaseConfig);
 }
+
 const database = typeof firebase !== 'undefined' ? firebase.database() : null;
-const db = (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore() : database;
+const db = database; 
+
 // ==========================================
 // CONFIGURATION & GLOBAL STATES
 // ==========================================
@@ -487,9 +489,9 @@ function filterCategory(category) {
     const inactiveClasses = "filter-btn shrink-0 whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-white/85 backdrop-blur-md text-hennadark border border-rosepink/30 shadow-sm transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 hover:border-pink-500 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-600 hover:text-white";
 
     if (btnAll) btnAll.className = category === 'All' ? activeClasses : inactiveClasses;
-    if (btnBridal) btnBridal.className = category === 'Bridal Heritage' ? activeClasses : inactiveClasses;
-    if (btnContemporary) btnContemporary.className = category === 'Contemporary Chic' ? activeClasses : inactiveClasses;
-    if (btnAqua) btnAqua.className = category === 'Aqua Tattoos' ? activeClasses : inactiveClasses;
+    if (btnBridal) btnBridal.className = category === 'Bridal Designs' ? activeClasses : inactiveClasses;
+    if (btnContemporary) btnContemporary.className = category === 'Contemporary Designs' ? activeClasses : inactiveClasses;
+    if (btnAqua) btnAqua.className = category === 'Jagua Tattoos' ? activeClasses : inactiveClasses;
 
     renderCards();
 
@@ -680,10 +682,27 @@ function sendToTikTok() {
     }, 800);
 }
 // ==========================================
-// ADVANCED TRAFFIC ANALYTICS LOGIC (STEP 2)
+// ADVANCED REALTIME ANALYTICS & TRACKING
 // ==========================================
 
-// 1. Visitor Source Detection (Instagram, TikTok, Direct)
+// Safe Storage Checker (Bypasses Browser Tracking Prevention Blocks)
+function isSessionTracked() {
+    try {
+        return sessionStorage.getItem('visited_session') === 'true';
+    } catch (e) {
+        return false;
+    }
+}
+
+function setSessionTracked() {
+    try {
+        sessionStorage.setItem('visited_session', 'true');
+    } catch (e) {
+        console.warn("Storage write blocked by browser tracking prevention");
+    }
+}
+
+// 1. Traffic Source Detection
 function getTrafficSource() {
     const urlParams = new URLSearchParams(window.location.search);
     const utmSource = urlParams.get('utm_source')?.toLowerCase();
@@ -694,86 +713,97 @@ function getTrafficSource() {
     } else if (utmSource === 'tiktok' || referrer.includes('tiktok.com')) {
         return 'tiktok';
     } else {
-        return 'other';
+        return 'direct'; // Database key matching
     }
 }
 
-// Visitor Tracking for Realtime Database
+// Visitor Track Function with Timestamps
 function trackVisitorSource() {
-    if (!database) return;
+    if (typeof database === 'undefined' || !database) return;
 
-    if (sessionStorage.getItem('visited_session')) {
-        return; 
-    }
+    if (isSessionTracked()) return;
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const source = urlParams.get('utm_source');
-    let trackingKey = 'direct';
+    const trackingKey = getTrafficSource(); // 'instagram', 'tiktok', ya 'direct'
+    const now = Date.now(); // Current Unix Timestamp in milliseconds
 
-    if (source === 'instagram') {
-        trackingKey = 'instagram';
-    } else if (source === 'tiktok') {
-        trackingKey = 'tiktok';
-    }
-
-    const analyticsRef = database.ref('analytics/' + trackingKey);
-    analyticsRef.transaction((currentValue) => {
-        return (currentValue || 0) + 1;
-    }, (error, committed) => {
-        if (committed) {
-            sessionStorage.setItem('visited_session', 'true');
+    // Save individual visit entry with timestamp
+    const visitRef = database.ref('visitor_logs').push();
+    visitRef.set({
+        source: trackingKey,
+        timestamp: now
+    }, (error) => {
+        if (!error) {
+            setSessionTracked();
         }
     });
 }
+let currentAnalyticsTimeframe = '24h'; // Default view: 24 Hours
 
-// Live Analytics Listener for Realtime Database
 function listenAnalyticsData() {
-    if (!database) return;
+    if (typeof database === 'undefined' || !database) return;
 
-    const analyticsRef = database.ref('analytics');
-    analyticsRef.on('value', (snapshot) => {
-        const data = snapshot.val() || {};
-        
-        const instagramCount = data.instagram || 0;
-        const tiktokCount = data.tiktok || 0;
-        const directCount = data.direct || 0;
-        const total = instagramCount + tiktokCount + directCount;
+    const now = Date.now();
+    let timeframeMs = 24 * 60 * 60 * 1000; // 24 Hours
 
-        // UI elements update
-        const instaElem = document.getElementById('instagramCount');
-        const tiktokElem = document.getElementById('tiktokCount');
-        const directElem = document.getElementById('directCount');
-        const totalElem = document.getElementById('totalVisitorsCount');
+    if (currentAnalyticsTimeframe === '7d') {
+        timeframeMs = 7 * 24 * 60 * 60 * 1000;
+    } else if (currentAnalyticsTimeframe === '30d') {
+        timeframeMs = 30 * 24 * 60 * 60 * 1000;
+    }
 
-        if (instaElem) instaElem.innerText = instagramCount;
-        if (tiktokElem) tiktokElem.innerText = tiktokCount;
-        if (directElem) directElem.innerText = directCount;
-        if (totalElem) totalElem.innerText = total;
-    });
+    const cutoffTime = now - timeframeMs;
+
+    // Cutoff time se purane entries filter out kar dein
+    database.ref('visitor_logs')
+        .orderByChild('timestamp')
+        .startAt(cutoffTime)
+        .on('value', (snapshot) => {
+            const logs = snapshot.val() || {};
+            
+            let instaCount = 0;
+            let tiktokCount = 0;
+            let directCount = 0;
+
+            Object.values(logs).forEach(log => {
+                if (log.source === 'instagram') instaCount++;
+                else if (log.source === 'tiktok') tiktokCount++;
+                else directCount++;
+            });
+
+            const total = instaCount + tiktokCount + directCount;
+
+            const instaElem = document.getElementById('instagramCount');
+            const tiktokElem = document.getElementById('tiktokCount');
+            const directElem = document.getElementById('directCount');
+            const totalElem = document.getElementById('totalVisitorsCount');
+
+            if (instaElem) instaElem.innerText = instaCount;
+            if (tiktokElem) tiktokElem.innerText = tiktokCount;
+            if (directElem) directElem.innerText = directCount;
+            if (totalElem) totalElem.innerText = total;
+        });
 }
 
-// Page Load par Call karein
-trackVisitorSource();
-
-// 3. Live Analytics Modal Stream
-function listenAnalyticsData() {
-    db.collection("analytics").doc("traffic").onSnapshot((doc) => {
-        if (doc.exists) {
-            const data = doc.data();
-            const instaEl = document.getElementById("stat-insta");
-            const tiktokEl = document.getElementById("stat-tiktok");
-            const otherEl = document.getElementById("stat-other");
-            const totalEl = document.getElementById("stat-total");
-
-            if (instaEl) instaEl.innerText = data.instagram || 0;
-            if (tiktokEl) tiktokEl.innerText = data.tiktok || 0;
-            if (otherEl) otherEl.innerText = data.other || 0;
-            if (totalEl) totalEl.innerText = data.total || 0;
-        }
+// Timeframe Filter Switcher Function
+function setTimeframe(range) {
+    currentAnalyticsTimeframe = range;
+    
+    // UI Active Tab Styling Update
+    document.querySelectorAll('.timeframe-btn').forEach(btn => {
+        btn.classList.remove('bg-rosepink', 'text-white');
+        btn.classList.add('bg-gray-100', 'text-gray-600');
     });
+    
+    const activeBtn = document.getElementById(`btn-${range}`);
+    if (activeBtn) {
+        activeBtn.classList.remove('bg-gray-100', 'text-gray-600');
+        activeBtn.classList.add('bg-rosepink', 'text-white');
+    }
+
+
 }
 
-// 4. Toggle Analytics Modal
+// 4. Analytics Modal Toggle
 function toggleAnalyticsModal(show) {
     const modal = document.getElementById('analytics-modal');
     if (!modal) return;
@@ -785,8 +815,12 @@ function toggleAnalyticsModal(show) {
     }
 }
 
-// Auto track visitor and start real-time listener on page load
+// 5. Page Load Execution
 document.addEventListener("DOMContentLoaded", () => {
-    trackVisitorSource();
-    listenAnalyticsData();
+    try {
+        if (typeof trackVisitorSource === 'function') trackVisitorSource();
+        if (typeof listenAnalyticsData === 'function') listenAnalyticsData();
+    } catch (error) {
+        console.error("Tracking Error:", error);
+    }
 });
