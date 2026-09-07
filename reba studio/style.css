@@ -68,3 +68,19 @@ html, body {
         gap: 1.25rem !important;
     }
 }
+/* Extra Small Screens Breakpoint Fix for Header */
+@media screen and (max-width: 390px) {
+    header .max-w-7xl {
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+    }
+    
+    #owner-btn-text {
+        font-size: 8px !important;
+    }
+    
+    #direct-add-btn, #owner-auth-btn {
+        padding-left: 0.35rem !important;
+        padding-right: 0.35rem !important;
+    }
+}
